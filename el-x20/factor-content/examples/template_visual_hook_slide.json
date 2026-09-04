@@ -1,0 +1,21 @@
+{
+  "name": "Hook slide (collage + texto contorno)",
+  "configuration_json": {
+    "canvas": { "width": 1080, "height": 1920, "background_fit": "cover" },
+    "zones": [
+      {
+        "role": "hook",
+        "x": 40,
+        "y": 620,
+        "max_width": 1000,
+        "font_size": 64,
+        "font_color": "#FFFFFF",
+        "align": "left",
+        "style": "outline",
+        "outline_color": "#000000",
+        "outline_width": 6
+      }
+    ],
+    "output": { "format": "jpg", "quality": 90 }
+  }
+}

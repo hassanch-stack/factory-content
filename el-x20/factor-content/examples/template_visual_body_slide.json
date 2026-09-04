@@ -1,0 +1,36 @@
+{
+  "name": "Body slide (burbujas de chat)",
+  "configuration_json": {
+    "canvas": { "width": 1080, "height": 1920, "background_fit": "cover" },
+    "bubble_lists": [
+      {
+        "role": "body_beats",
+        "x": 90,
+        "y": 200,
+        "max_width": 900,
+        "font_size": 42,
+        "font_color": "#FFFFFF",
+        "bubble_color": "#4A4A4A",
+        "bubble_opacity": 0.9,
+        "corner_radius": 40,
+        "spacing": 30,
+        "align": "center"
+      }
+    ],
+    "zones": [
+      {
+        "role": "cta",
+        "x": 90,
+        "y": 1600,
+        "max_width": 900,
+        "font_size": 40,
+        "font_color": "#FFFFFF",
+        "align": "center",
+        "style": "box",
+        "box_color": "#4A4A4A",
+        "box_opacity": 0.9
+      }
+    ],
+    "output": { "format": "jpg", "quality": 90 }
+  }
+}

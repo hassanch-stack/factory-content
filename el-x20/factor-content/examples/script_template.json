@@ -1,0 +1,29 @@
+{
+  "name": "Noticia shock — hook + 3 beats + CTA",
+  "configuration_json": {
+    "sections": [
+      {
+        "role": "hook",
+        "max_words": 20,
+        "instructions": "Frase tipo titular de shock, 2-3 líneas. Terminar con 1-2 emojis de impacto (😱🤯). Si el contenido incluye una acusación no confirmada, usar lenguaje que la atribuya a su fuente (ej. 'según...') en vez de presentarla como hecho."
+      },
+      {
+        "role": "body_beats",
+        "repeat": true,
+        "count": 3,
+        "max_words": 25,
+        "instructions": "Cada beat es una frase corta que revela un dato nuevo, en tono narrativo/conversacional, como si se lo contaras a un amigo por chat."
+      },
+      {
+        "role": "cta",
+        "max_words": 15,
+        "instructions": "Invitar a ver más contenido (ej. 'entra a mis historias/perfil'), con un emoji de señalar."
+      }
+    ],
+    "hashtag_count": 5,
+    "keyword_count": 5,
+    "title_max_words": 14,
+    "tone": "urgente/shock",
+    "caption_pattern": "title_plus_hashtags"
+  }
+}

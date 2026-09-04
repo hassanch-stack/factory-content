@@ -1,0 +1,150 @@
+# Render Blueprint — despliega todo el sistema con un clic.
+# Cómo se usa: sube este repo a GitHub, entra a render.com,
+# "New +" -> "Blueprint", conecta el repo. Render lee este archivo y
+# crea los 6 servicios de abajo automáticamente.
+#
+# Variables marcadas "sync: false" NO se rellenan solas — Render te
+# mostrará un formulario para pegarlas a mano la primera vez (son tus
+# secretos: no deben vivir en este archivo ni en el repo).
+
+databases:
+  - name: factor-content-db
+    plan: starter
+    databaseName: factor_content
+    user: factor
+
+services:
+  # --- Redis (colas de Celery) ---
+  - type: redis
+    name: factor-content-redis
+    plan: starter
+    ipAllowList: []   # solo accesible desde los otros servicios de este proyecto
+
+  # --- API (FastAPI) ---
+  - type: web
+    name: factor-content-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: factor-content-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: factor-content-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: AUTH_REQUIRED
+        value: "true"
+      - key: MAX_UPLOAD_SIZE_BYTES
+        value: "20971520"
+      - key: AUTH_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_REGION
+        value: auto
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  # --- Worker (Celery: radar, import, render, ai, publish, analytics, cleanup) ---
+  - type: worker
+    name: factor-content-worker
+    runtime: docker
+    dockerfilePath: ./workers/Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A workers.celery_app worker --loglevel=info -Q radar,import,render,ai,publish,analytics,cleanup
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: factor-content-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: factor-content-redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_REGION
+        value: auto
+      - key: AUTH_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  # --- Beat (dispara las tareas periódicas: publicar, recolectar métricas) ---
+  - type: worker
+    name: factor-content-beat
+    runtime: docker
+    dockerfilePath: ./workers/Dockerfile
+    dockerContext: .
+    dockerCommand: celery -A workers.celery_app beat --loglevel=info
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: factor-content-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: factor-content-redis
+          property: connectionString
+      - key: AUTH_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+
+  # --- Web (Next.js — el dashboard que tú visitas) ---
+  - type: web
+    name: factor-content-web
+    runtime: docker
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: ./apps/web
+    plan: starter
+    envVars:
+      # OJO: esta URL debe ser la del servicio factor-content-api de arriba
+      # (Render te la da tipo https://factor-content-api.onrender.com).
+      # Si la pegas DESPUÉS del primer deploy, tienes que forzar un
+      # "Manual Deploy" en factor-content-web para que se reconstruya con
+      # el valor correcto (Next.js la incrusta al compilar, no en caliente).
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
